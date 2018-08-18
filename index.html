@@ -12,7 +12,7 @@
     <div class="wrapper">
       <div class="chat-panel" id="scroller">
         <ul class="chat-messages" id='messages'>
-          <li id="dummy">コメントをロード中</li>
+          <li id="dummy">コメントがありません</li>
         </ul>
       </div>
       <div class="user-panel-wrap">
@@ -72,10 +72,8 @@
 
       // データベースにデータが追加されたときに発動する
       database.limitToLast(10).on('child_added', function (snapshot) {
-        if (dummy) {
-          dummy.parentNode.removeChild(dummy);
-          dummy = "";
-        }
+        // ダミーがあれば削除
+        removeDummy();
 
         //取得したデータ
         var data = snapshot.val();
@@ -92,6 +90,13 @@
           li.classList.remove('before');
         }, 100);
       });
+
+      function removeDummy() {
+        if (dummy) {
+          dummy.parentNode.removeChild(dummy);
+          dummy = "";
+        }
+      }
     </script>
   </body>
 </html>
