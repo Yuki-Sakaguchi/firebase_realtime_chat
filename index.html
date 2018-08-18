@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>AXEL REALTIME CHAT</title>
+    <link rel="stylesheet" href="/css/main.css">
+  </head>
+  <body>
+    <h1 class="title">AXEL REALTIME CHAT</h1>
+    <div class="wrapper">
+      <div class="chat-panel" id="scroller">
+        <ul class="chat-messages" id='messages'>
+          <li id="dummy">コメントをロード中</li>
+        </ul>
+      </div>
+      <div class="user-panel-wrap">
+        <div class="user-panel">
+          <p class="user-panel__input"><span>ユーザ名</span><input type='text' class="form-control" id="nameInput" placeholder="ユーザー名を入力してください"></p>
+          <p class="user-panel__input"><span>メッセージ</span><textarea class="form-control" id="messageInput" placeholder="メッセージ内容を入力してください"></textarea></p>
+        </div>
+      </div>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/5.4.0/firebase.js"></script>
+    <script>
+      // Initialize Firebase
+      var config = {
+        apiKey: "AIzaSyBJXdLrkEBTCbW7BEyxfxM88mIqV_cA4nA",
+        authDomain: "axel-realtime-chat.firebaseapp.com",
+        databaseURL: "https://axel-realtime-chat.firebaseio.com",
+        projectId: "axel-realtime-chat",
+        storageBucket: "axel-realtime-chat.appspot.com",
+        messagingSenderId: "9696008519"
+      };
+      firebase.initializeApp(config);
+      
+      var database = firebase.database().ref('chat/');
+      var scroller = document.getElementById('scroller');
+      var messageField = document.getElementById('messageInput');
+      var nameField = document.getElementById('nameInput');
+      var messageList = document.getElementById('messages');
+      var dummy =  document.getElementById('dummy');
+
+      messageField.addEventListener('keypress', function (e) {
+        if (e.keyCode === 13 && e.shiftKey) {
+          return false;
+        } else if (e.keyCode === 13) {
+          //フォームに入力された情報
+          var username = nameField.value;
+          var message = messageField.value;
+
+          if (!username) {
+            alert('ユーザ名を入力してください');
+            return false;
+          }
+
+          if (!message.trim()) {
+            alert("メッセージを入力してください");
+            messageField.value = '';
+            return false;
+          }
+
+          //データベースに保存する
+          database.push({name:username, text:message});
+          setTimeout(function() {
+            messageField.value = '';
+            scroller.scrollTop = messageList.clientHeight;
+          }, 100);
+        }
+      });
+
+      // データベースにデータが追加されたときに発動する
+      database.limitToLast(10).on('child_added', function (snapshot) {
+        if (dummy) {
+          dummy.parentNode.removeChild(dummy);
+          dummy = "";
+        }
+
+        //取得したデータ
+        var data = snapshot.val();
+        var username = data.name || "anonymous";
+        var message = data.text;
+
+        //取得したデータの名前が自分の名前なら右側に吹き出しを出す
+        var li = document.createElement('li');
+        li.classList.add('before');
+        li.innerHTML = username + '<span class="small">さん</span><br><span class="message">' + message.replace(/\r?\n/g, '<br>') + '</span>';
+        messageList.append(li);
+        scroller.scrollTop = messageList.clientHeight;
+        setTimeout(function() {
+          li.classList.remove('before');
+        }, 100);
+      });
+    </script>
+  </body>
+</html>
